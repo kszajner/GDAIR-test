@@ -4,6 +4,7 @@ scikit-learn
 scipy
 requests
 retry_requests
+requests_cache
 openmeteo_requests
 datetime
 joblib

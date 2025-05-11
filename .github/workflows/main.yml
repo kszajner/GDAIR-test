@@ -20,10 +20,10 @@ jobs:
         uses: actions/checkout@v2
 
       # Step 2: Set up Python
-      - name: Set up Python 3.8
+      - name: Set up Python 3.11.9
         uses: actions/setup-python@v2
         with:
-          python-version: '3.8'
+          python-version: '3.11.9'
 
       # Step 3: Install dependencies
       - name: Install dependencies
@@ -31,7 +31,21 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      # Step 4: Run the prediction model
+      # Step 4: Run get_data script to fetch data
+      - name: Run get_data script
+        run: |
+          python get_data.py
+
+      # Step 5: Commit changes to the repository (if needed)
+      - name: Commit fetched data
+        run: |
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "github-actions@github.com"
+          git add current_data.csv
+          git commit -m "Updated fetched data"
+          git push
+
+      # Step 6: Run the prediction model
       - name: Run prediction model
         run: |
           python predict_model.py

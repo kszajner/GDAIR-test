@@ -1,5 +1,8 @@
 name: Run Prediction Model
 
+permissions:
+  contents: write  # Allow write access for the action to push changes
+
 on:
   schedule:
     # Run daily at 12 PM (UTC)

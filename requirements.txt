@@ -1,4 +1,6 @@
 pandas
+sklearn
+scipy
 requests
 retry_requests
 openmeteo_requests

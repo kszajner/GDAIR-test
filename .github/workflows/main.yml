@@ -31,21 +31,21 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      # Step 4: Run get_data script to fetch data
-      - name: Run get_data script
+      # Step 4: Run the script to get data (get_data.py)
+      - name: Get data
         run: |
           python get_data.py
 
-      # Step 5: Commit changes to the repository (if needed)
-      - name: Commit fetched data
+      # Step 5: Commit and push the fetched data
+      - name: Commit and push the fetched data
         run: |
           git config --global user.name "GitHub Actions"
           git config --global user.email "github-actions@github.com"
-          git add current_data.csv
+          git add .
           git commit -m "Updated fetched data"
-          git push https://x-access-token:${{ secrets.GH_TOKEN }}@github.com/${{ github.repository }}.git HEAD:main
+          git push https://x-access-token:${{ secrets.GH_TOKEN }}@github.com/${{ github.repository }}.git
 
-      # Step 6: Run the prediction model
+      # Step 6: Run the prediction model (predict_model.py)
       - name: Run prediction model
         run: |
           python predict_model.py

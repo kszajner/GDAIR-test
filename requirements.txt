@@ -1,0 +1,7 @@
+pandas
+requests
+retry_requests
+openmeteo_requests
+datetime
+joblib
+holidays

@@ -9,9 +9,9 @@ on:
     - cron: '0 17 * * *'
   workflow_dispatch:
     # Allow manual trigger
-  push:
-    branches:
-      - main  # Trigger on push to the 'main' branch
+  #push:
+    #branches:
+      #- main  # Trigger on push to the 'main' branch
 
 jobs:
   run-prediction:

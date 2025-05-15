@@ -92,7 +92,7 @@ def get_current_weather_and_pm10():
 
     # Zwróć zaktualizowane dane
     result = pd.DataFrame([{
-        "Data": datetime.now().strftime("%Y-%m-%d"),
+        "Data": datetime.now(),
         "wind speed": wind_speed,
         "temperature": temperature,
         "relative humidity": humidity,

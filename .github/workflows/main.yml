@@ -5,13 +5,13 @@ permissions:
 
 on:
   schedule:
-    # Run daily at 17 (UTC)
+    # Run daily at 19 (Polish time)
     - cron: '0 17 * * *'
   workflow_dispatch:
     # Allow manual trigger
   #push:
     #branches:
-      #- main  # Trigger on push to the 'main' branch
+      #- main  # Trigger on push to the 'main' branch - for now disabled
 
 jobs:
   run-prediction:
@@ -48,7 +48,7 @@ jobs:
           git commit -m "Updated fetched data"
           git push https://x-access-token:${{ secrets.GH_TOKEN }}@github.com/${{ github.repository }}.git
 
-      # Step 6: Run the prediction model (predict_model.py)
+      # Step 6: Run the model (predict_model.py)
       - name: Run prediction model
         run: |
           python predict_model.py

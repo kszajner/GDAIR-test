@@ -7,37 +7,56 @@ import openmeteo_requests
 from datetime import datetime
 
 def get_current_weather_and_pm10():
-    """
-    Fetch current weather data and PM10 data, and return the results as a DataFrame.
-    """
-    # Open Meteo
-    cache_session = requests_cache.CachedSession('.cache', expire_after=3600)  # Cache for 1 hour
-    retry_session = retry(cache_session, retries=5, backoff_factor=0.2)  # Retry up to 5 times with exponential backoff
+    from datetime import timedelta
+
+    # Open Meteo setup
+    cache_session = requests_cache.CachedSession('.cache', expire_after=3600)
+    retry_session = retry(cache_session, retries=5, backoff_factor=0.2)
     openmeteo = openmeteo_requests.Client(session=retry_session)
 
     weather_url = "https://api.open-meteo.com/v1/forecast"
+    today = datetime.utcnow().date()
+    start_date = today.strftime("%Y-%m-%d")
+    end_date = (today + timedelta(days=1)).strftime("%Y-%m-%d")
+
     weather_params = {
         "latitude": 54.40359618668799,
         "longitude": 18.668799,
-        "current": ["wind_speed_10m", "temperature_2m", "relative_humidity_2m", "precipitation", "pressure_msl"]
+        "hourly": ["temperature_2m", "relative_humidity_2m", "precipitation", "wind_speed_10m", "pressure_msl"],
+        "start_date": start_date,
+        "end_date": end_date,
+        "timezone": "auto"
     }
 
     try:
         weather_response = openmeteo.weather_api(weather_url, params=weather_params)[0]
-        current = weather_response.Current()
+        hourly = weather_response.Hourly()
+        timestamps = pd.to_datetime(hourly.Time(), unit='s')
 
-        current_time = datetime.utcfromtimestamp(current.Time())
-        wind_speed = current.Variables(0).Value()
-        temperature = current.Variables(1).Value()
-        humidity = current.Variables(2).Value()
-        precipitation = current.Variables(3).Value()
-        pressure = current.Variables(4).Value()
+        df_weather = pd.DataFrame({
+            "time": timestamps,
+            "temperature": hourly.Variables(0).ValuesAsNumpy(),
+            "humidity": hourly.Variables(1).ValuesAsNumpy(),
+            "precipitation": hourly.Variables(2).ValuesAsNumpy(),
+            "wind_speed": hourly.Variables(3).ValuesAsNumpy(),
+            "pressure": hourly.Variables(4).ValuesAsNumpy()
+        })
+
+        df_weather['date'] = df_weather['time'].dt.date
+        df_today = df_weather[df_weather['date'] == today]
+
+        temperature = df_today['temperature'].mean()
+        humidity = df_today['humidity'].mean()
+        precipitation = df_today['precipitation'].sum()
+        wind_speed = df_today['wind_speed'].mean()
+        pressure = df_today['pressure'].mean()
+
     except Exception as e:
-        print(f"Error with downloading the data: {e}")
+        print(f"Error with downloading weather data: {e}")
         return pd.DataFrame()
 
-    # PM10
-    station_id = 731  # Gdańsk Station ID
+    # PM10 jak wcześniej
+    station_id = 731
     base_url = "https://api.gios.gov.pl/pjp-api/rest"
 
     try:
@@ -67,20 +86,13 @@ def get_current_weather_and_pm10():
     df_pm10['value'] = pd.to_numeric(df_pm10['value'], errors='coerce')
     df_pm10 = df_pm10.dropna(subset=['value'])
 
-    # Filter for today's PM10 data
-    today = datetime.now().date()
     df_pm10['date_only'] = df_pm10['date'].dt.date
-    df_today = df_pm10[df_pm10['date_only'] == today]
+    df_today_pm10 = df_pm10[df_pm10['date_only'] == today]
+    pm10_value = df_today_pm10['value'].mean() if not df_today_pm10.empty else None
 
-    if df_today.empty:
-        print("No PM10 data for today.")
-        pm10_value = None
-    else:
-        pm10_value = df_today['value'].mean()
-
-    # Combine results into a single row DataFrame
+    # Zwróć zaktualizowane dane
     result = pd.DataFrame([{
-        "Data": current_time.strftime("%Y-%m-%d %H:%M:%S"),
+        "Data": datetime.now().strftime("%Y-%m-%d"),
         "wind speed": wind_speed,
         "temperature": temperature,
         "relative humidity": humidity,

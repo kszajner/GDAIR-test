@@ -4,6 +4,12 @@ from datetime import datetime
 import requests
 import joblib
 
+import os
+
+webhook_url = os.getenv('DISCORD_WEBHOOK_URL')
+if not webhook_url:
+    raise ValueError("Webhook URL not set in environment variables")
+
 def get_season(date):
     """
     Determine the season based on the given date.
@@ -92,7 +98,7 @@ def send_to_discord(message, webhook_url):
     else:
         print("Message sent successfully!")
 
-def predict_from_last_sequence(df, model_path="model.pkl", webhook_url="https://discord.com/api/webhooks/1371140026045562890/2lD0ZDQUt1QneWsDumlrIOEmrlzI6q38lAxV5ZzulSbyt2jnvB2BNH8i72sUkUPDcOtf"):
+def predict_from_last_sequence(df, model_path="model.pkl", webhook_url=webhook_url):
     """
     Make a prediction from the last 3 observations and send the result to Discord.
     """

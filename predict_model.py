@@ -153,7 +153,7 @@ def main():
     """
     df = get_last_observations_transformed("current_data.csv")
     if not df.empty:
-        predict_from_last_sequence(df, model_path="model.pkl", webhook_url="https://discord.com/api/webhooks/1371140026045562890/2lD0ZDQUt1QneWsDumlrIOEmrlzI6q38lAxV5ZzulSbyt2jnvB2BNH8i72sUkUPDcOtf")
+        predict_from_last_sequence(df, model_path="model.pkl", webhook_url=webhook_url)
 
 # Run the main function
 if __name__ == "__main__":

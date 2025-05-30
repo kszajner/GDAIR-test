@@ -131,10 +131,14 @@ def predict_from_last_sequence(df, model_path="model.pkl", webhook_url=webhook_u
     prob_class_1 = probabilities[:, 1]
 
     # Send results
-    risk_probability = pm10_exceedance_prob[0]
+    risk_probability = prob_class_1[0]
     confidence_pct = round(risk_probability * 100, 1)
     # Build contextual forecast message
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M UTC")
+    wind = seq_df["Wavg_3"].iloc[0]
+    pressure = seq_df["Pavg_3"].iloc[0]
+    temp = seq_df["Tavg_3"].iloc[0]
+    current_pm10 = seq_df["PM10_3"].iloc[0]
     
     message = f"**PM10 Air Quality Forecast - {timestamp}**\n"
     message += f"📊 **Exceedance Probability:** {confidence_pct}% (threshold: 50 μg/m³)\n"

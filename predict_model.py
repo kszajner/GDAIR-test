@@ -136,7 +136,7 @@ def predict_from_last_sequence(df, model_path="model.pkl", webhook_url=webhook_u
     # Build contextual forecast message
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M UTC")
     wind = seq_df["Wavg_3"].iloc[0]
-    pressure = seq_df["Pavg_3"].iloc[0]
+    pressure = seq_df["Pravg_3"].iloc[0]
     temp = seq_df["Tavg_3"].iloc[0]
     current_pm10 = seq_df["PM10_3"].iloc[0]
     

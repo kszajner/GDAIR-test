@@ -3,9 +3,9 @@ import holidays
 from datetime import datetime
 import requests
 import joblib
-
 import os
 
+# Get the Discord webhook - to send notifications to server
 webhook_url = os.getenv('DISCORD_WEBHOOK_URL')
 if not webhook_url:
     raise ValueError("Webhook URL not set in environment variables")
@@ -130,19 +130,40 @@ def predict_from_last_sequence(df, model_path="model.pkl", webhook_url=webhook_u
     # Probability of class 1 (high PM10 level)
     prob_class_1 = probabilities[:, 1]
 
-    # Warning threshold
-    threshold = 0.5
-    pm10_risk = prob_class_1[0]
-    percent = round(pm10_risk * 100, 0)
-
-    # General message
-    message = f"Probability of high PM10 levels tomorrow: {percent}%\n"
-
-    # Decision message
-    if pm10_risk > threshold:
-        message += f"🚨 WARNING: There is a {percent:.2f}% chance of exceeding the safe PM10 level. Consider limiting outdoor activities."
+    # Send results
+    risk_probability = pm10_exceedance_prob[0]
+    confidence_pct = round(risk_probability * 100, 1)
+    # Build contextual forecast message
+    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M UTC")
+    
+    message = f"**PM10 Air Quality Forecast - {timestamp}**\n"
+    message += f"📊 **Exceedance Probability:** {confidence_pct}% (threshold: 50 μg/m³)\n"
+    message += f"🌡️ **Current Conditions:** {temp:.1f}°C, {wind:.1f} m/s wind, {pressure:.0f} hPa\n"
+    message += f"💨 **Baseline PM10:** {current_pm10:.0f} μg/m³\n\n"
+    
+    # Risk assessment with meteorological context
+    if risk_probability > 0.7:
+        message += f"🔴 **HIGH RISK ALERT**\n"
+        message += f"Model indicates {confidence_pct}% probability of exceeding WHO daily guidelines tomorrow.\n"
+        if wind < 2.0:
+            message += f"⚠️ Low wind conditions ({wind:.1f} m/s) limiting dispersion.\n"
+        if pressure > 1020:
+            message += f"⚠️ High pressure system ({pressure:.0f} hPa) promoting accumulation.\n"
+        message += f"**Recommendation:** Limit outdoor exercise, vulnerable groups should stay indoors."
+        
+    elif risk_probability > 0.4:
+        message += f"🟡 **MODERATE RISK**\n"
+        message += f"Elevated probability ({confidence_pct}%) of air quality deterioration.\n"
+        message += f"**Recommendation:** Monitor conditions, sensitive individuals exercise caution."
+        
     else:
-        message += f"✅ All clear! Only a {percent:.2f}% chance of high PM10 levels – the air should be fine. Have a nice day! 😊"
+        message += f"🟢 **LOW RISK**\n"
+        message += f"Favorable atmospheric conditions predicted ({confidence_pct}% exceedance risk).\n"
+        if wind > 4.0:
+            message += f"✅ Good wind dispersion ({wind:.1f} m/s) supporting air quality.\n"
+        message += f"**Outlook:** Air quality should remain within acceptable limits."
+    
+    message += f"\n*Model: RandomForest | Data: 72h moving window*"
 
     # Send result to Discord
     send_to_discord(message, webhook_url)

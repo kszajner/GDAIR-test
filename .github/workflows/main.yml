@@ -16,6 +16,8 @@ on:
 jobs:
   run-prediction:
     runs-on: ubuntu-latest
+    env:
+      DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_HOOK }}
     
     steps:
       # Step 1: Checkout code from the repository
